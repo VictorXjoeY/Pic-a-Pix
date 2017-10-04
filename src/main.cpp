@@ -114,20 +114,42 @@ Board read_board(){
 }
 
 int solve_row_aux(vector<vector<int> > &dp, Board &b, int x, int y, int p){
+	int i;
+
 	if (y > b.m){
 		return p == (int)b.row[x].size();
 	}
+	if(p>= (int)b.row[x].size()){
+		if(b.mat[x][y]==BLACK)
+			return false;
+		for(i=y; i<=b.m; i++)
+			if(b.mat[x][i]==BLACK)
+				break;
+		if(i!=b.m+1)
+			return false;
+		else
+			return true;
+	}
+
 
 	if (dp[y][p] != -1){
 		return dp[y][p];
 	}
 
 	if (b.mat[x][y] == BLACK){
-		if (y + b.row[x][p] > b.m or b.mat[x][y + b.row[x][p]] != BLACK){
+		for(int i=y; i<y+b.row[x][p] && i<=b.m; i++)
+			if(b.mat[x][i]==WHITE)
+				return false;
+
+		if (y + b.row[x][p] > b.m){
 			return dp[y][p] = solve_row_aux(dp, b, x, y + b.row[x][p] + 1, p + 1);
 		}
 
-		return 0;
+		if (b.mat[x][y + b.row[x][p]] != BLACK){
+			return dp[y][p] = solve_row_aux(dp, b, x, y + b.row[x][p] + 1, p + 1);
+		}else
+			return false;
+
 	}
 
 	if (b.mat[x][y] == WHITE){
@@ -155,27 +177,47 @@ int solve_row(Board &b, int x){
 }
 
 int solve_col_aux(vector<vector<int> > &dp, Board &b, int y, int x, int p){
+	int i;
+
 	if (x > b.n){
 		return p == (int)b.col[y].size();
 	}
 
+	if(p>= (int)b.col[y].size()){
+		if(b.mat[x][y]==BLACK)
+			return false;
+		for(i=x; i<=b.n; i++)
+			if(b.mat[i][y]==BLACK)
+				break;
+		if(i!=b.n+1)
+			return false;
+		else
+			return true;
+	}
+	
 	if (dp[x][p] != -1){
 		return dp[x][p];
 	}
 
 	if (b.mat[x][y] == BLACK){
-		if (x + b.col[y][p] > b.n or b.mat[x + b.col[y][p]][y] != BLACK){
+		for(int i=x; i<x+b.col[y][p] && i<=b.n; i++)
+			if(b.mat[i][y]==WHITE)
+				return false;
+		if (x + b.col[y][p] > b.n){
 			return dp[x][p] = solve_col_aux(dp, b, y, x + b.col[y][p] + 1, p + 1);
 		}
+		if (b.mat[x + b.col[y][p]][y] != BLACK){
+			return dp[x][p] = solve_col_aux(dp, b, y, x + b.col[y][p] + 1, p + 1);
+		}else
+			return false;
 
-		return 0;
 	}
 
 	if (b.mat[x][y] == WHITE){
 		return dp[x][p] = solve_col_aux(dp, b, y, x + 1, p);
 	}
 
-	if (p < (int)b.col[y].size() and y + b.col[y][p] - 1 <= b.m){
+	if (p < (int)b.col[y].size() and x + b.col[y][p] - 1 <= b.n){
 		return dp[x][p] = solve_col_aux(dp, b, y, x + b.col[y][p] + 1, p + 1) + solve_col_aux(dp, b, y, x + 1, p);
 	}
 
@@ -206,8 +248,6 @@ bool valid_col(Board &b, int y){
 bool solve(Board &b){
 	int i, j;
 
-	print_board(b);
-
 	for (i = 1; i <= b.n; i++){
 		for (j = 1; j <= b.m; j++){
 			if (b.mat[i][j] == NONE){
@@ -220,28 +260,24 @@ bool solve(Board &b){
 		}
 	}
 
-	if (i == 1 and j == 9){
-		printf("aqui\n");
-		print_board(b);
-	}
-
 	if (i > b.n){
 		return true;
 	}
 
 	b.mat[i][j] = BLACK;
-
 	if (valid_row(b, i) and valid_col(b, j) and solve(b)){
 		return true;
 	}
 
 	b.mat[i][j] = WHITE;
+	
 
 	if (valid_row(b, i) and valid_col(b, j) and solve(b)){
 		return true;
 	}
 
 	b.mat[i][j] = NONE;
+	
 
 	return false;
 }
@@ -251,23 +287,7 @@ int main(int argc, char *argv[]){
 
 	b = read_board();
 
-	b.mat[1][1] = WHITE;
-	b.mat[1][2] = WHITE;
-	b.mat[1][3] = WHITE;
-	b.mat[1][4] = BLACK;
-	b.mat[1][5] = WHITE;
-	b.mat[1][6] = WHITE;
-	b.mat[1][7] = WHITE;
-	b.mat[1][8] = BLACK;
-	
-	b.mat[1][9] = BLACK;
-	printf("%d %d\n", solve_row(b, 1), solve_col(b, 9));
-
-	b.mat[1][9] = WHITE;
-	printf("%d %d\n", solve_row(b, 1), solve_col(b, 9));
-
 	solve(b);
-
 	print_board(b);
 
 	return 0;
