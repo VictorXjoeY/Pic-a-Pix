@@ -282,12 +282,105 @@ bool solve(Board &b){
 	return false;
 }
 
+
+bool solveFullRow(Board &b, int x, int y){
+	if (y > b.m){
+		//return true;
+
+		print_board(b);
+		return false;
+
+		//atualiza heap
+		//pega primeiro item da heap
+		//se heap esta vazia
+			//return true
+
+		//se primeiro item da linha tem 0 possibilidades
+			//return false
+
+		//solvenextroworcolumn
+	}
+
+	if(b.mat[x][y]!=NONE){
+		if (valid_row(b, x) and valid_col(b, y) and solveFullRow(b, x, y+1)){
+			return true;
+		}else
+			return false;
+	}
+
+	b.mat[x][y] = BLACK;
+	if (valid_row(b, x) and valid_col(b, y) and solveFullRow(b, x, y+1)){
+		return true;
+	}
+
+	b.mat[x][y] = WHITE;
+	
+
+	if (valid_row(b, x) and valid_col(b, y) and solveFullRow(b, x, y+1)){
+		return true;
+	}
+
+	b.mat[x][y] = NONE;
+	
+
+	return false;
+}
+
+
+
+/*
+bool rec_solveByRow(Board &b){
+
+	//pega primeiro item da heap
+	//se heap esta vazia
+		//return true
+
+	//se primeiro item da linha tem 0 possibilidades
+		//return false
+	//copia linha atual
+	//resolve linha ou coluna
+	//atualiza heap
+	//chama para resolver proxima linha ou coluna
+	//erro: desfazer linha ou coluna
+	//return false
+
+	//else return true
+	
+
+	return false;
+}
+
+*/
+bool solveByRow(Board &b){
+	int i;
+
+	//cria heap
+
+	for(i=1; i<=b.n; i++){
+		int temp =solve_row(b, i);
+		printf("Possibilidades linha %d: %d\n", i, temp);
+		//insere na heap
+	};
+
+
+	for(i=1; i<=b.m; i++){
+		int temp =solve_col(b, i);
+		printf("Possibilidades coluna %d: %d\n", i, temp);
+		//insere na heap
+	};
+
+	//remove primeiro item da heap
+	//return solveFullRow/solveFullColumn
+
+}
+
 int main(int argc, char *argv[]){
 	Board b;
 
 	b = read_board();
-
-	solve(b);
+	solveByRow(b);
+	solveFullRow(b, 1, 1);
+	//solve(b);
 	print_board(b);
 
 	return 0;
