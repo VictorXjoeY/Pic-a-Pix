@@ -25,9 +25,4 @@ struct Compare{
 		}
 };
 
-void update_heap(vector<HeapItem> &heap, int x, int y, int key){
-	vector<HeapItem>::iterator i;
-
-}
-
 #endif

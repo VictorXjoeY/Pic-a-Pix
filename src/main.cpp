@@ -161,19 +161,17 @@ int solve_row_aux(vector<vector<int> > &dp, Board &b, int x, int y, int p){
 
 	if (p < (int)b.row[x].size() and y + b.row[x][p] - 1 <= b.m){
 		for(int i=y; i<y+b.row[x][p] && i<=b.m; i++)
-			if(b.mat[x][i]==WHITE)
+			if(b.mat[x][i]==WHITE) //pixel so pode ser branco
 				return dp[y][p] = solve_row_aux(dp, b, x, y + 1, p);
-		if (y + b.row[x][p] > b.m+1)
-			return dp[y][p] = solve_row_aux(dp, b, x, y + 1, p);
-		if (y + b.row[x][p] == b.m+1){
+	
+		if (y + b.row[x][p] == b.m+1){ //branco ou preto
 			return dp[y][p] = solve_row_aux(dp, b, x, y + b.row[x][p] + 1, p + 1) + solve_row_aux(dp, b, x, y + 1, p);
 		}
 
-		if (b.mat[x][y + b.row[x][p]] != BLACK){
+		if (b.mat[x][y + b.row[x][p]] != BLACK){ //branco ou preto
 			return dp[y][p] = solve_row_aux(dp, b, x, y + b.row[x][p] + 1, p + 1) + solve_row_aux(dp, b, x, y + 1, p);
-		}else
+		}else //branco
 			return dp[y][p] = solve_row_aux(dp, b, x, y + 1, p);
-		//return dp[y][p] = solve_row_aux(dp, b, x, y + b.row[x][p] + 1, p + 1) + solve_row_aux(dp, b, x, y + 1, p);
 	}
 
 	return dp[y][p] = solve_row_aux(dp, b, x, y + 1, p);
@@ -199,6 +197,7 @@ int solve_col_aux(vector<vector<int> > &dp, Board &b, int y, int x, int p){
 		return p == (int)b.col[y].size();
 	}
 
+	//se condicoes ja foram preenchidas, verifica se nao ha mais pixels pretos a frente
 	if(p>= (int)b.col[y].size()){
 		for(i=x; i<=b.n; i++)
 			if(b.mat[i][y]==BLACK)
@@ -210,6 +209,7 @@ int solve_col_aux(vector<vector<int> > &dp, Board &b, int y, int x, int p){
 	if (dp[x][p] != -1){
 		return dp[x][p];
 	}
+
 
 	if (b.mat[x][y] == BLACK){
 		for(int i=x; i<x+b.col[y][p] && i<=b.n; i++)
@@ -235,25 +235,23 @@ int solve_col_aux(vector<vector<int> > &dp, Board &b, int y, int x, int p){
 	}
 
 	if (p < (int)b.col[y].size() and x + b.col[y][p] - 1 <= b.n){
-		//ADICIONAR CONDICOES DE TESTE PRO PRETO
+		//se ha uma casa branca impedindo a sequencia de pixels pretos
 		for(int i=x; i<x+b.col[y][p] && i<=b.n; i++)
 			if(b.mat[i][y]==WHITE)
-				return dp[x][p] = solve_col_aux(dp, b, y, x + 1, p);
+				return dp[x][p] = solve_col_aux(dp, b, y, x + 1, p); //casa pode ser apenas branca
 
-		if(x + b.col[y][p] > b.n+1)
-			return dp[x][p] = solve_col_aux(dp, b, y, x + 1, p);	
-
+		//sequencia preta acabaria na ultima casa
 		if (x + b.col[y][p] == b.n+1){
+			//preta ou branca
 			return dp[x][p] = solve_col_aux(dp, b, y, x + b.col[y][p] + 1, p + 1) + solve_col_aux(dp, b, y, x + 1, p);
 		}
 
+		//se casa apos possivel sequencia preta nao eh preta
 		if (b.mat[x + b.col[y][p]][y] != BLACK){
+			//preta ou branca
 			return dp[x][p] = solve_col_aux(dp, b, y, x + b.col[y][p] + 1, p + 1) + solve_col_aux(dp, b, y, x + 1, p);
-		}else
+		}else //branca
 			return dp[x][p] = solve_col_aux(dp, b, y, x + 1, p);
-
-
-		//return dp[x][p] = solve_col_aux(dp, b, y, x + b.col[y][p] + 1, p + 1) + solve_col_aux(dp, b, y, x + 1, p);
 	}
 
 	return dp[x][p] = solve_col_aux(dp, b, y, x + 1, p);
@@ -318,10 +316,12 @@ bool solve(Board &b){
 }
 
 
+//resolve coluna inteira antes de passar a proximo item da heap
 bool solveFullColumn(Board &b, int x, int y, vector<struct HeapItem> &heap){
+	
+	//coluna terminada
 	if (x > b.n){
-		//se heap esta vazia
-			//return true
+		//se heap esta vazia --> puzzle terminado
 		if(heap.size()==0)
 			return true;
 
@@ -332,28 +332,30 @@ bool solveFullColumn(Board &b, int x, int y, vector<struct HeapItem> &heap){
 			}
 		}
 		make_heap(heap.begin(), heap.end(), Compare());
-		//printHeap(heap);
+	
 		//se primeiro item da linha tem 0 possibilidades
-			//return false
 		if(heap[0].key==0){
 			return false;
 		}
+	
 		//pega primeiro item da heap
 		int row, i, key;
-		row=heap[0].x;
-		i=heap[0].y;
-		key=heap[0].key;
+		row=heap[0].x; //linha ou coluna
+		i=heap[0].y; //indice da linha ou coluna
+		key=heap[0].key; //chave (n. de possibilidades)
 		pop_heap(heap.begin(), heap.end(), Compare());
 		heap.pop_back();
 
-		//solvenextroworcolumn
+		//Resolve coluna/linha retirada da heap
 		bool success;
 		if(row==ROW)
 			success=solveFullRow(b, i, 1, heap);
 		else
 			success=solveFullColumn(b, 1, i, heap);
 
+		//falhou ao achar solucao
 		if(!success){
+			//readiciona ultimo item a heap
 			HeapItem h = HeapItem(row, i, key);
 			heap.push_back(h);
 			make_heap(heap.begin(), heap.end(), Compare());
@@ -363,9 +365,7 @@ bool solveFullColumn(Board &b, int x, int y, vector<struct HeapItem> &heap){
 		return true;	
 	}
 
-	//print_board(b);
-	//printf("Resolvendo coluna %d\n", y);
-
+	//pixel ja preenchido
 	if(b.mat[x][y]!=NONE){
 		if (valid_row(b, x) and valid_col(b, y) and solveFullColumn(b, x+1, y, heap)){
 			return true;
@@ -391,11 +391,12 @@ bool solveFullColumn(Board &b, int x, int y, vector<struct HeapItem> &heap){
 	return false;
 }
 
-
+//Resolve uma linha inteira antes de pegar o proximo item da heap
 bool solveFullRow(Board &b, int x, int y, vector<struct HeapItem> &heap){
+	
+	//linha terminada
 	if (y > b.m){
-		//se heap esta vazia
-			//return true
+		//se heap esta vazia -> terminou o puzzle
 		if(heap.size()==0)
 			return true;
 
@@ -406,27 +407,29 @@ bool solveFullRow(Board &b, int x, int y, vector<struct HeapItem> &heap){
 			}
 		}
 		make_heap(heap.begin(), heap.end(), Compare());
-		//printHeap(heap);
+
 		//se primeiro item da linha tem 0 possibilidades
-			//return false
 		if(heap[0].key==0)
 			return false;
+		
 		//pega primeiro item da heap
 		int row, i, key;
-		row=heap[0].x;
-		i=heap[0].y;
-		key=heap[0].key;
+		row=heap[0].x; //linha ou coluna
+		i=heap[0].y; //indice da linha ou coluna
+		key=heap[0].key; //chave (n. de possibilidades)
 		pop_heap(heap.begin(), heap.end(), Compare());
 		heap.pop_back();
 
-		//solvenextroworcolumn
+		//resolve item retirado da heap
 		bool success;
 		if(row==ROW)
 			success=solveFullRow(b, i, 1, heap);
 		else
 			success=solveFullColumn(b, 1, i, heap);
 
+		//se nao conseguiu obter solucao
 		if(!success){
+			//readiciona ultimo item a heap
 			HeapItem h = HeapItem(row, i, key);
 			heap.push_back(h);
 			make_heap(heap.begin(), heap.end(), Compare());
@@ -436,10 +439,7 @@ bool solveFullRow(Board &b, int x, int y, vector<struct HeapItem> &heap){
 		return true;	
 	}
 
-	//print_board(b);
-	//printf("Resolvendo linha %d\n", x);
-
-
+	//pixel ja preenchido
 	if(b.mat[x][y]!=NONE){
 		if (valid_row(b, x) and valid_col(b, y) and solveFullRow(b, x, y+1, heap)){
 			return true;
@@ -467,70 +467,35 @@ bool solveFullRow(Board &b, int x, int y, vector<struct HeapItem> &heap){
 
 
 
-/*
-bool rec_solveByRow(Board &b){
-
-	//pega primeiro item da heap
-	//se heap esta vazia
-		//return true
-
-	//se primeiro item da linha tem 0 possibilidades
-		//return false
-	//copia linha atual
-	//resolve linha ou coluna
-	//atualiza heap
-	//chama para resolver proxima linha ou coluna
-	//erro: desfazer linha ou coluna
-	//return false
-
-	//else return true
-	
-
-	return false;
-}
-
-*/
 bool solveByRow(Board &b){
 	int i;
 
-	//cria heap
+	//cria heap - chave eh o n. de possibilidades para cada linha/coluna
 	vector<struct HeapItem> heap;
 	heap.resize(b.m+b.n);
 
-
+	//insere linhas na heap
 	for(i=1; i<=b.n; i++){
 		 heap[i-1] = HeapItem(ROW, i, solve_row(b, i));
-		//printf("Possibilidades linha %d: %d\n", i, temp);
-		//insere na heap
 	};
 
-
+	//insere colunas na heap
 	for(i=1; i<=b.m; i++){
 		heap[b.n+i-1] = HeapItem(COLUMN, i, solve_col(b, i));
-		//printf("Possibilidades coluna %d: %d\n", i, temp);
-		//insere na heap
 	};
 
 	make_heap(heap.begin(), heap.end(), Compare());
-	//printHeap(heap);
-	/*
-	while(heap.size()>0){
-		printf("Possibilidades ROW/COL(%d) %d: %d\n", heap[0].x, heap[0].y, heap[0].key);
-		pop_heap(heap.begin(), heap.end(), Compare());
-		heap.pop_back();
-	}*/
-	
+
 	//remove primeiro item da heap
-	int row;
+	int row; //indica se eh uma coluna ou uma linha
 	row=heap[0].x;
 	i=heap[0].y;
 	pop_heap(heap.begin(), heap.end(), Compare());
 	heap.pop_back();
 	
-	//return solveFullRow/solveFullColumn
-	if(row==ROW)
+	if(row==ROW) //primeiro item eh linha
 		return solveFullRow(b, i, 1, heap);
-	else
+	else //primeiro item eh coluna
 		return solveFullColumn(b, 1, i, heap);
 
 
@@ -541,25 +506,10 @@ int main(int argc, char *argv[]){
 
 	b = read_board();
 	solveByRow(b);
-	//solveFullRow(b, 1, 1);
+
 	//solve(b);
-	/*
-	b.mat[8][2]=BLACK;
-	b.mat[9][2]=BLACK;
-	b.mat[10][2]=BLACK;
 
-	b.mat[2][5]=BLACK;
-	b.mat[2][2]=BLACK;
-	b.mat[2][3]=BLACK;
-	b.mat[2][4]=BLACK;
-
-	b.mat[2][5]=BLACK;
-	b.mat[2][2]=BLACK;
-	b.mat[2][3]=BLACK;
-	b.mat[2][4]=BLACK;*/
-	print_board(b);
-	//printf("valid %d\n", valid_row(b, 2) );
-	
+	print_board(b);	
 
 	return 0;
 }
