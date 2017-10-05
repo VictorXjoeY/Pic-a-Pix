@@ -1,5 +1,5 @@
 all:
-	@g++ -o main src/*.cpp -I include -g -Wall
+	@g++ -o main src/*.cpp -I include -g -Wall -std=c++11
 run:
 	@./main
 fullrun:
