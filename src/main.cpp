@@ -7,17 +7,24 @@
 
 using namespace std;
 
+/*
+Sobre puzzles:
+O puzzle 5.in nao eh resolvido em tempo razoavel por nenhuma das heuristicas
+O puzzle 7.in, excepcionalmente, nao eh resolvido em tempo razoavel pela heuristica de linha/coluna (e eh resolvido pela outra heuristica ou pelo backtracking)
+*/
+
+
 int main(int argc, char *argv[]){
 	Board b;
 
 	b = read_board();
 	//solveByRow(b);
 
-	//solve(b);
+	//solve(b); //solucao sem heuristica
 	 auto start = std::chrono::system_clock::now();
    solve(b);
-   //solveByPixel(b);
-	//solveByRow(b);
+   //solveByPixel(b); //solucao heuristica pixel a pixel
+	//solveByRow(b); //solucao heuristica de linha/coluna
     auto end = std::chrono::system_clock::now();
  
     std::chrono::duration<double> elapsed_seconds = end-start;

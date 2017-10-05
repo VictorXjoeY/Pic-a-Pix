@@ -8,9 +8,15 @@
 #include "heap.h"
 #include "board.h"
 
+/*Heuristica sobre linha/coluna
+	Calcula o numero de possibilidades de cada linha/coluna e preenche primeiro as mais restritivas
+	Foi usada como fila de prioridade uma heap
+*/
 
 bool solveFullRow(Board &b, int x, int y, vector<struct HeapItem> &heap);
-//resolve coluna inteira antes de passar a proximo item da heap
+
+//resolve coluna inteira antes de passar ao proximo item da heap
+//funcao chamada inicialmente pela funcao principal solveByRow
 bool solveFullColumn(Board &b, int x, int y, vector<struct HeapItem> &heap){
 	
 	//coluna terminada
@@ -69,9 +75,11 @@ bool solveFullColumn(Board &b, int x, int y, vector<struct HeapItem> &heap){
 		return true;	
 	}
 
+	//Preenchimento do pixel atual
+
 	//pixel ja preenchido
 	if(b.mat[x][y]!=NONE){
-		if (valid_row(b, x) and valid_col(b, y) and solveFullColumn(b, x+1, y, heap)){
+		if (valid_row(b, x) and valid_col(b, y) and solveFullColumn(b, x+1, y, heap)){ //chama proximo item na coluna
 			return true;
 		}else
 			return false;
@@ -96,6 +104,7 @@ bool solveFullColumn(Board &b, int x, int y, vector<struct HeapItem> &heap){
 }
 
 //Resolve uma linha inteira antes de pegar o proximo item da heap
+//funcao chamada pela funcao principal solveByR
 bool solveFullRow(Board &b, int x, int y, vector<struct HeapItem> &heap){
 	
 	//linha terminada
@@ -180,7 +189,7 @@ bool solveFullRow(Board &b, int x, int y, vector<struct HeapItem> &heap){
 }
 
 
-
+//Funcao principal para a solucao por esta heuristica
 bool solveByRow(Board &b){
 	int i;
 

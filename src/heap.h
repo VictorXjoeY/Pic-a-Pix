@@ -4,10 +4,10 @@
 
 using namespace std;
 struct HeapItem{
-	int x;
-	int y;
+	int x; //rowheuristic: coluna ou linha || pixelheuristic: coordenada x do pixel
+	int y; //rowheuristic: indice da coluna ou linha || pixelheuristic: coordenada y do pixel
 	float key;
-	int color;
+	int color; //usado apenas para pixelheuristic
 
 	HeapItem(){
 
@@ -27,12 +27,14 @@ struct HeapItem{
 	}
 };
 
+//usado para rowheuristic para uma min heap
 struct Compare{
 		inline bool operator()(const HeapItem &a, const HeapItem &b){
 			return a.key > b.key;
 		}
 };
 
+//usado para pixelheuristic para uma max heap
 struct CompareMax{
 		inline bool operator()(const HeapItem &a, const HeapItem &b){
 			return a.key < b.key;

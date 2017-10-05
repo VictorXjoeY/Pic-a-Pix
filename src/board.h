@@ -14,6 +14,9 @@ using namespace std;
 #define COLUMN 1
 
 
+/*
+Arquivo com as definicoes iniciais e resolucao por busca nao informada
+*/
 
 struct Board{
 	vector<vector<int> > row;
