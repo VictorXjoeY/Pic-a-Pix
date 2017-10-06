@@ -11,6 +11,7 @@ using namespace std;
 Sobre puzzles:
 O puzzle 5.in nao eh resolvido em tempo razoavel por nenhuma das heuristicas
 O puzzle 7.in, excepcionalmente, nao eh resolvido em tempo razoavel pela heuristica de linha/coluna (e eh resolvido pela outra heuristica ou pelo backtracking)
+(tempo = 467.95s)
 */
 
 
@@ -22,8 +23,8 @@ int main(int argc, char *argv[]){
 
 	//solve(b); //solucao sem heuristica
 	 auto start = std::chrono::system_clock::now();
-   solve(b);
-   //solveByPixel(b); //solucao heuristica pixel a pixel
+ // solve(b);
+   solveByPixel(b); //solucao heuristica pixel a pixel
 	//solveByRow(b); //solucao heuristica de linha/coluna
     auto end = std::chrono::system_clock::now();
  

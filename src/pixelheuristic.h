@@ -4,8 +4,11 @@
 #include "heap.h"
 #include "board.h"
 
+/*Heuristica que calcula probabilidade de um pixel ser preto ou branco*/
+
+
 bool updatePixels(Board &b, int x, int y, vector<struct HeapItem> &heap){
-		//atualiza pixels da mesma linha ou coluna
+	//atualiza pixels da mesma linha ou coluna
 	vector<int> blackPosRow;
 	vector<int> whitePosRow;
 
@@ -237,14 +240,27 @@ bool solveByPixel(Board &b){
 	heap.resize(k);
 
 	make_heap(heap.begin(), heap.end(), CompareMax());
-	//printHeap(heap);
-	//remove primeiro item da heap
+
+	int color;
+
+	//preenche inicialmente todos os pixels de probabilidade 1
+	while(heap.size()>0 && heap[0].key==1){
+		//remove primeiro item da heap
+		i=heap[0].x;
+		j=heap[0].y;
+		b.mat[i][j]=heap[0].color;
+		pop_heap(heap.begin(), heap.end(), CompareMax());
+		heap.pop_back();
+	}
+	if(heap.size()==0) //verificando se puzzle nao foi preenchido pelo loop acima (por precaucao)
+		return true;
+
+
 	i=heap[0].x;
 	j=heap[0].y;
-	int color=heap[0].color;
+	color=heap[0].color;
 	pop_heap(heap.begin(), heap.end(), CompareMax());
 	heap.pop_back();
-	
 	//chama resolucao para primeiro pixel
 	return solvePixelRec(b, i, j, heap, color);
 
