@@ -13,11 +13,11 @@
 	Foi usada como fila de prioridade uma heap
 */
 
-bool solveFullRow(Board &b, int x, int y, vector<struct HeapItem> &heap);
+bool solveFullRow(Board &b, int x, int y, vector<struct HeapItem> &heap, int &count);
 
 //resolve coluna inteira antes de passar ao proximo item da heap
 //funcao chamada inicialmente pela funcao principal solveByRow
-bool solveFullColumn(Board &b, int x, int y, vector<struct HeapItem> &heap){
+bool solveFullColumn(Board &b, int x, int y, vector<struct HeapItem> &heap, int &count){
 	
 	//coluna terminada
 	if (x > b.n){
@@ -51,9 +51,9 @@ bool solveFullColumn(Board &b, int x, int y, vector<struct HeapItem> &heap){
 		//Resolve coluna/linha retirada da heap
 		bool success;
 		if(row==ROW)
-			success=solveFullRow(b, i, 1, heap);
+			success=solveFullRow(b, i, 1, heap, count);
 		else
-			success=solveFullColumn(b, 1, i, heap);
+			success=solveFullColumn(b, 1, i, heap, count);
 
 		//falhou ao achar solucao
 		if(!success){
@@ -79,33 +79,34 @@ bool solveFullColumn(Board &b, int x, int y, vector<struct HeapItem> &heap){
 
 	//pixel ja preenchido
 	if(b.mat[x][y]!=NONE){
-		if (valid_row(b, x) and valid_col(b, y) and solveFullColumn(b, x+1, y, heap)){ //chama proximo item na coluna
+		if (valid_row(b, x) and valid_col(b, y) and solveFullColumn(b, x+1, y, heap, count)){ //chama proximo item na coluna
 			return true;
 		}else
 			return false;
 	}
 
 	b.mat[x][y] = BLACK;
-	if (valid_row(b, x) and valid_col(b, y) and solveFullColumn(b, x+1, y, heap)){
+	count++;
+	if (valid_row(b, x) and valid_col(b, y) and solveFullColumn(b, x+1, y, heap, count)){
 		return true;
 	}
 
 	b.mat[x][y] = WHITE;
-	
+	count++;
 
-	if (valid_row(b, x) and valid_col(b, y) and solveFullColumn(b, x+1, y, heap)){
+	if (valid_row(b, x) and valid_col(b, y) and solveFullColumn(b, x+1, y, heap, count)){
 		return true;
 	}
 
 	b.mat[x][y] = NONE;
-	
+	count++;
 
 	return false;
 }
 
 //Resolve uma linha inteira antes de pegar o proximo item da heap
 //funcao chamada pela funcao principal solveByR
-bool solveFullRow(Board &b, int x, int y, vector<struct HeapItem> &heap){
+bool solveFullRow(Board &b, int x, int y, vector<struct HeapItem> &heap, int &count){
 	
 	//linha terminada
 	if (y > b.m){
@@ -138,9 +139,9 @@ bool solveFullRow(Board &b, int x, int y, vector<struct HeapItem> &heap){
 		//resolve item retirado da heap
 		bool success;
 		if(row==ROW)
-			success=solveFullRow(b, i, 1, heap);
+			success=solveFullRow(b, i, 1, heap, count);
 		else
-			success=solveFullColumn(b, 1, i, heap);
+			success=solveFullColumn(b, 1, i, heap, count);
 
 		//se nao conseguiu obter solucao
 		if(!success){
@@ -164,33 +165,34 @@ bool solveFullRow(Board &b, int x, int y, vector<struct HeapItem> &heap){
 
 	//pixel ja preenchido
 	if(b.mat[x][y]!=NONE){
-		if (valid_row(b, x) and valid_col(b, y) and solveFullRow(b, x, y+1, heap)){
+		if (valid_row(b, x) and valid_col(b, y) and solveFullRow(b, x, y+1, heap, count)){
 			return true;
 		}else
 			return false;
 	}
 
 	b.mat[x][y] = BLACK;
-	if (valid_row(b, x) and valid_col(b, y) and solveFullRow(b, x, y+1, heap)){
+	count++;
+	if (valid_row(b, x) and valid_col(b, y) and solveFullRow(b, x, y+1, heap, count)){
 		return true;
 	}
 
 	b.mat[x][y] = WHITE;
-	
+	count++;
 
-	if (valid_row(b, x) and valid_col(b, y) and solveFullRow(b, x, y+1, heap)){
+	if (valid_row(b, x) and valid_col(b, y) and solveFullRow(b, x, y+1, heap, count)){
 		return true;
 	}
 
 	b.mat[x][y] = NONE;
-	
+	count++;
 
 	return false;
 }
 
 
 //Funcao principal para a solucao por esta heuristica
-bool solveByRow(Board &b){
+bool solveByRow(Board &b, int &count){
 	int i;
 
 	//cria heap - chave eh o n. de possibilidades para cada linha/coluna
@@ -217,9 +219,9 @@ bool solveByRow(Board &b){
 	heap.pop_back();
 	
 	if(row==ROW) //primeiro item eh linha
-		return solveFullRow(b, i, 1, heap);
+		return solveFullRow(b, i, 1, heap, count);
 	else //primeiro item eh coluna
-		return solveFullColumn(b, 1, i, heap);
+		return solveFullColumn(b, 1, i, heap, count);
 
 
 }

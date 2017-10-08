@@ -17,15 +17,16 @@ O puzzle 7.in, excepcionalmente, nao eh resolvido em tempo razoavel pela heurist
 
 int main(int argc, char *argv[]){
 	Board b;
+	int count;
 
 	b = read_board();
 	//solveByRow(b);
 
 	//solve(b); //solucao sem heuristica
 	 auto start = std::chrono::system_clock::now();
- // solve(b);
-   solveByPixel(b); //solucao heuristica pixel a pixel
-	//solveByRow(b); //solucao heuristica de linha/coluna
+	// solve(b, count);
+   solveByPixel(b, count); //solucao heuristica pixel a pixel
+	//solveByRow(b, count); //solucao heuristica de linha/coluna
     auto end = std::chrono::system_clock::now();
  
     std::chrono::duration<double> elapsed_seconds = end-start;
@@ -36,6 +37,7 @@ int main(int argc, char *argv[]){
 
 	//solveByPixel(b);
 
+              printf("Count %d\n", count);
 	print_board(b);	
 
 	return 0;

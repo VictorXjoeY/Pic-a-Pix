@@ -283,7 +283,7 @@ bool valid_col(Board &b, int y){
 	return solve_col(b, y) > 0;
 }
 
-bool solve(Board &b){
+bool solve(Board &b, int &count){
 	int i, j;
 
 	for (i = 1; i <= b.n; i++){
@@ -302,15 +302,18 @@ bool solve(Board &b){
 		return true;
 	}
 
+	count++;
+
 	b.mat[i][j] = BLACK;
-	if (valid_row(b, i) and valid_col(b, j) and solve(b)){
+	if (valid_row(b, i) and valid_col(b, j) and solve(b, count)){
 		return true;
 	}
 
+	count++;
 	b.mat[i][j] = WHITE;
 	
 
-	if (valid_row(b, i) and valid_col(b, j) and solve(b)){
+	if (valid_row(b, i) and valid_col(b, j) and solve(b, count)){
 		return true;
 	}
 

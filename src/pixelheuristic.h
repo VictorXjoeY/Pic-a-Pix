@@ -79,7 +79,7 @@ bool updatePixels(Board &b, int x, int y, vector<struct HeapItem> &heap){
 }
 
 
-bool solvePixelRec(Board &b, int x, int y, vector<struct HeapItem> &heap, int color){
+bool solvePixelRec(Board &b, int x, int y, vector<struct HeapItem> &heap, int color, int &count){
 	
 	//printf("proximo pixel %d %d: cor %c\n", x, y, color);
 
@@ -101,7 +101,7 @@ bool solvePixelRec(Board &b, int x, int y, vector<struct HeapItem> &heap, int co
 		pop_heap(heap.begin(), heap.end(), CompareMax());
 		heap.pop_back();
 		//printHeap(heap);	
-		return solvePixelRec(b, i, j, heap, color);
+		return solvePixelRec(b, i, j, heap, color, count);
 	}
 
 
@@ -112,6 +112,7 @@ bool solvePixelRec(Board &b, int x, int y, vector<struct HeapItem> &heap, int co
 
 	//tente cor indicada pela probabilidade
 	b.mat[x][y]=color;
+	count++;
 	//print_board(b);
 
 	//atualiza probabilidade dos pixels na mesma linha ou coluna
@@ -128,7 +129,7 @@ bool solvePixelRec(Board &b, int x, int y, vector<struct HeapItem> &heap, int co
 			pop_heap(heap.begin(), heap.end(), CompareMax());
 			heap.pop_back();
 			//printHeap(heap);
-			success= solvePixelRec(b, i, j, heap, color);
+			success= solvePixelRec(b, i, j, heap, color, count);
 		}
 
 		
@@ -141,6 +142,7 @@ bool solvePixelRec(Board &b, int x, int y, vector<struct HeapItem> &heap, int co
 			b.mat[x][y]=WHITE;
 		else
 			b.mat[x][y]=BLACK;
+		count++;
 		//print_board(b);
 		if(updatePixels(b, x, y, heap)){
 			//chama proximo pixel
@@ -153,7 +155,7 @@ bool solvePixelRec(Board &b, int x, int y, vector<struct HeapItem> &heap, int co
 				int color=heap[0].color;
 				pop_heap(heap.begin(), heap.end(), CompareMax());
 				heap.pop_back();
-				success= solvePixelRec(b, i, j, heap, color);
+				success= solvePixelRec(b, i, j, heap, color, count);
 			}
 		
 		}
@@ -200,7 +202,7 @@ bool solvePixelRec(Board &b, int x, int y, vector<struct HeapItem> &heap, int co
 
 
 
-bool solveByPixel(Board &b){
+bool solveByPixel(Board &b, int &count){
 	int i, j, k=0;
 	int blackPos, whitePos;
 	//cria heap - chave eh o n. de possibilidades para cada linha/coluna
@@ -249,6 +251,7 @@ bool solveByPixel(Board &b){
 		i=heap[0].x;
 		j=heap[0].y;
 		b.mat[i][j]=heap[0].color;
+		count++;
 		pop_heap(heap.begin(), heap.end(), CompareMax());
 		heap.pop_back();
 	}
@@ -262,7 +265,7 @@ bool solveByPixel(Board &b){
 	pop_heap(heap.begin(), heap.end(), CompareMax());
 	heap.pop_back();
 	//chama resolucao para primeiro pixel
-	return solvePixelRec(b, i, j, heap, color);
+	return solvePixelRec(b, i, j, heap, color, count);
 
 
 }
