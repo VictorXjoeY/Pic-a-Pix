@@ -20,13 +20,30 @@ int main(int argc, char *argv[]){
 	int count;
 
 	b = read_board();
-	//solveByRow(b);
 
-	//solve(b); //solucao sem heuristica
-	 auto start = std::chrono::system_clock::now();
-	// solve(b, count);
-   solveByPixel(b, count); //solucao heuristica pixel a pixel
-	//solveByRow(b, count); //solucao heuristica de linha/coluna
+	if(argc!=2 || (argc==2 && (argv[1][0]<'1' || argv[1][0]>'3' ))){
+		printf("Erro na entrada!\nUso do programa: ./main op <arquivoDeEntrada\nop: heuristica usada\n\t1 - busca nao informada\n\t2 - heuristica de linha/coluna\n\t3 - heuristica de pixel\n");
+		return 0;
+	}
+
+	
+	auto start = std::chrono::system_clock::now();
+	
+
+	if(argc>1){
+		if(argv[1][0]=='1'){
+			solve(b, count); //solucao sem heuristica
+		}
+		else
+			if(argv[1][0]=='2'){ //solucao heuristica de linha/coluna
+				solveByRow(b, count);
+			}
+			else
+				if(argv[1][0]=='3'){ //solucao heuristica pixel a pixel
+					solveByPixel(b, count);
+				}
+	}
+
     auto end = std::chrono::system_clock::now();
  
     std::chrono::duration<double> elapsed_seconds = end-start;
@@ -35,9 +52,7 @@ int main(int argc, char *argv[]){
     std::cout << "finished computation at " << std::ctime(&end_time)
               << "elapsed time: " << elapsed_seconds.count() << "s\n";
 
-	//solveByPixel(b);
-
-              printf("Count %d\n", count);
+    printf("Count %d\n", count);
 	print_board(b);	
 
 	return 0;
