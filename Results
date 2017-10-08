@@ -21,6 +21,13 @@ Count 34045
 Count 33536
 10:elapsed time: 1.0214s
 Count 65536
+11:elapsed time: 0.0387004s
+Count 34934
+12:elapsed time: 6.09084s
+Count 266991
+13:elapsed time: 76.3719s
+Count 3543964
+
 
 -Row heuristic
 1:elapsed time: 0.00377622s
@@ -42,6 +49,11 @@ Count 37898
 9:elapsed time: 0.0625819s
 Count 33334
 10: mais de 10 minutos
+11:elapsed time: 0.0322909s
+Count 33591
+12:elapsed time: 0.681853s
+Count 52228
+13: >10 min
 
 -Pixel heuristic
 1:elapsed time: 0.0267284s
@@ -64,3 +76,9 @@ Count 33051
 Count 33257
 10:elapsed time: 10.5733s
 Count 33932
+11:elapsed time: 0.125324s
+Count 32921
+12:elapsed time: 1.67894s
+Count 33776
+13:elapsed time: 1.19194s
+Count 33308
