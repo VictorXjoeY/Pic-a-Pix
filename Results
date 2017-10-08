@@ -1,0 +1,66 @@
+Results:
+
+-No heuristic
+1: elapsed time: 0.0041032s
+	Count 32992
+2:elapsed time: 0.013892s
+Count 33481
+3:elapsed time: 0.00232455s
+Count 32756
+4:elapsed time: 0.19206s
+Count 47334
+5:elapsed time: 0.756196s
+Count 61251
+6:elapsed time: 0.0727777s
+Count 3658
+7:elapsed time: 0.348968s
+Count 54712
+8:elapsed time: 0.0305701s
+Count 34045
+9:elapsed time: 0.0325554s
+Count 33536
+10:elapsed time: 1.0214s
+Count 65536
+
+-Row heuristic
+1:elapsed time: 0.00377622s
+Count 32800
+2:elapsed time: 0.0148805s
+Count 33763
+3:elapsed time: 0.00571637s
+Count 32878
+4:elapsed time: 0.0357482s
+Count 34413
+5:elapsed time: 3.87008s
+Count 188754
+6:elapsed time: 0.0350475s
+Count 33431
+7:elapsed time: 434.2s
+Count 22315810
+8:elapsed time: 0.123072s
+Count 37898
+9:elapsed time: 0.0625819s
+Count 33334
+10: mais de 10 minutos
+
+-Pixel heuristic
+1:elapsed time: 0.0267284s
+Count 32806
+2:elapsed time: 0.185951s
+Count 32851
+3:elapsed time: 0.0139024s
+Count 32749
+4:elapsed time: 0.166339s
+Count 32899
+5:elapsed time: 1.59933s
+Count 33260
+6:elapsed time: 0.555352s
+Count 33123
+7:elapsed time: 0.888535s
+Count 33066
+8:elapsed time: 0.589089s
+Count 33051
+9:elapsed time: 0.380249s
+Count 33257
+10:elapsed time: 10.5733s
+Count 33932
