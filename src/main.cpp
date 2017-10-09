@@ -9,7 +9,7 @@ using namespace std;
 #define WHITE 1
 #define BLACK 2
 
-/* Preenche uma submatriz retangular com o valor k. */
+/* O(Área do retângulo) Preenche uma submatriz retangular com o valor k. */
 void fill_matrix(vector<vector<long long> > &mat, int xi, int yi, int xf, int yf, long long k){
 	int i, j;
 
@@ -20,7 +20,7 @@ void fill_matrix(vector<vector<long long> > &mat, int xi, int yi, int xf, int yf
 	}
 }
 
-/* Soma um valor k a todos os elementos de uma submatriz retangular. */
+/* O(Área do retângulo) Soma um valor k a todos os elementos de uma submatriz retangular. */
 void update_matrix(vector<vector<long long> > &mat, int xi, int yi, int xf, int yf, long long k){
 	int i, j;
 
@@ -47,10 +47,12 @@ public:
 	vector<long long> col_combinations; // Número de combinações da coluna j.
 	int n, m; // (Constant) Dimensões do tabuleiro.
 
+	// O(1) Construtor vazio.
 	Board(){
 		this->n = this->m = 0;
 	}
 
+	// O(N * M) Construtor.
 	Board(int n, int m){
 		int i;
 
@@ -81,13 +83,17 @@ public:
 		this->col_black.resize(n + 1);
 		this->col_white.resize(n + 1);
 
+		// Alocando as colunas.
 		for (i = 0; i <= n; i++){
+			// Tabuleiro vazio.
 			this->mat[i].assign(m + 1, NONE);
 
+			// Soma acumulada vazia.
 			this->sum[NONE][i].assign(m + 1, 0);
 			this->sum[WHITE][i].assign(m + 1, 0);
 			this->sum[BLACK][i].assign(m + 1, 0);
 
+			// Número de combinações vazio.
 			this->row_black[i].assign(m + 1, 0);
 			this->row_white[i].assign(m + 1, 0);
 			this->col_black[i].assign(m + 1, 0);
@@ -95,6 +101,7 @@ public:
 		}
 	}
 
+	/* O(1) Retorna o símbolo de impressão de cada cor. */
 	static char symbol(int type){
 		if (type == WHITE){
 			return '_';
@@ -107,26 +114,27 @@ public:
 		return '.';
 	}
 
+	/* O(1) Retorna a cor oposta. */
 	static int toggle(int color){
 		return color == WHITE ? BLACK : WHITE;
 	}
 
-	/* Função que imprime o tabuleiro. */
+	/* O(N * M) Função que imprime o tabuleiro. */
 	void print(){
 		int krow_max, kcol_max, i, j;
 
 		// Obtendo o número máximo de restrições-linha.
-		for (i = 1, krow_max = 0; i <= this->n; i++){
-			krow_max = max(krow_max, (int)this->row[i].size());
+		for (i = 1, krow_max = 0; i <= n; i++){
+			krow_max = max(krow_max, (int)row[i].size());
 		}
 
 		// Obtendo o número máximo de restrições-coluna.
-		for (i = 1, kcol_max = 0; i <= this->m; i++){
-			kcol_max = max(kcol_max, (int)this->col[i].size());
+		for (i = 1, kcol_max = 0; i <= m; i++){
+			kcol_max = max(kcol_max, (int)col[i].size());
 		}
 
 		// Imprimindo dimensões do tabuleiro.
-		printf("%d %d\n", this->n, this->m);
+		printf("%d %d\n", n, m);
 
 		// Imprimindo as restrições-coluna.
 		for (i = 0; i < kcol_max; i++){
@@ -134,9 +142,9 @@ public:
 				printf("   ");
 			}
 
-			for (j = 1; j <= this->m; j++){
-				if (kcol_max - i <= (int)this->col[j].size()){
-					printf("%3d", this->col[j][(int)this->col[j].size() - (kcol_max - i)]);
+			for (j = 1; j <= m; j++){
+				if (kcol_max - i <= (int)col[j].size()){
+					printf("%3d", col[j][(int)col[j].size() - (kcol_max - i)]);
 				}
 				else{
 					printf("   ");
@@ -146,11 +154,11 @@ public:
 			printf("\n");
 		}
 
-		for (i = 1; i <= this->n; i++){
+		for (i = 1; i <= n; i++){
 			// Imprimindo as restrições-linha.
 			for (j = 0; j < krow_max; j++){
-				if (krow_max - j <= (int)this->row[i].size()){
-					printf("%3d", this->row[i][(int)this->row[i].size() - (krow_max - j)]);
+				if (krow_max - j <= (int)row[i].size()){
+					printf("%3d", row[i][(int)row[i].size() - (krow_max - j)]);
 				}
 				else{
 					printf("   ");
@@ -158,47 +166,48 @@ public:
 			}
 
 			// Imprimindo o tabuleiro.
-			for (j = 1; j <= this->m; j++){
-				printf("%3c", symbol(this->mat[i][j]));
+			for (j = 1; j <= m; j++){
+				printf("%3c", symbol(mat[i][j]));
 			}
 
 			printf("\n");
 		}
 	}
 
-	/* Função que atualiza a matriz de soma acumulada. */
+	/* O(N * M) Função que atualiza a matriz de soma acumulada. */
 	void update_sum(){
 		int i, j, k;
 
 		for (k = NONE; k <= BLACK; k++){
-			for (i = 1; i <= this->n; i++){
-				for (j = 1; j <= this->m; j++){
-					this->sum[k][i][j] = this->sum[k][i - 1][j] + this->sum[k][i][j - 1] - this->sum[k][i - 1][j - 1] + (this->mat[i][j] == k);
+			for (i = 1; i <= n; i++){
+				for (j = 1; j <= m; j++){
+					sum[k][i][j] = sum[k][i - 1][j] + sum[k][i][j - 1] - sum[k][i - 1][j - 1] + (mat[i][j] == k);
 				}
 			}
 		}
 	}
 
-	/* Função que retorna quantas celulas estão preenchidas com k no intervalo [xi, xf] x [yi, yf]. */
+	/* O(1) Função que retorna quantas celulas estão preenchidas com k no intervalo [xi, xf] x [yi, yf]. */
 	int query(int xi, int yi, int xf, int yf, int k){
 		if (xi > xf or yi > yf){
 			swap(xi, xf);
 			swap(yi, yf);
 		}
 
-		return this->sum[k][xf][yf] - this->sum[k][xi - 1][yf] - this->sum[k][xf][yi - 1] + this->sum[k][xi - 1][yi - 1];
+		return sum[k][xf][yf] - sum[k][xi - 1][yf] - sum[k][xf][yi - 1] + sum[k][xi - 1][yi - 1];
 	}
 
-	/* Função que retorna a soma dos elementos de row[x][pi..pf]. */
+	/* O(1) Função que retorna a soma dos elementos de row[x][pi..pf]. */
 	int query_row(int x, int pi, int pf){
-		return this->row_sum[x][pf] - this->row_sum[x][pi] + this->row[x][pi];
+		return row_sum[x][pf] - row_sum[x][pi] + row[x][pi];
 	}
 
-	/* Função que retorna a soma dos elementos de col[y][pi..pf]. */
+	/* O(1) Função que retorna a soma dos elementos de col[y][pi..pf]. */
 	int query_col(int y, int pi, int pf){
-		return this->col_sum[y][pf] - this->col_sum[y][pi] + this->col[y][pi];
+		return col_sum[y][pf] - col_sum[y][pi] + col[y][pi];
 	}
 
+	/* Função que calcula as possibilidades para a linha x entre [y..m] com as restrições entre [p..k-1]. */
 	long long solve_row_aux(int x, int y, int p){
 		long long ans, ret;
 		int j, k;
@@ -244,6 +253,7 @@ public:
 		return ans;
 	}
 
+	/* Função que calcula as possibilidades da linha x. */
 	long long solve_row(int x){
 		// Inicializando número de combinações
 		fill_matrix(row_black, x, 0, x, m, 0);
@@ -252,6 +262,7 @@ public:
 		return row_combinations[x] = solve_row_aux(x, 1, 0);
 	}
 
+	/* Função que calcula as possibilidades para a coluna y entre [x..n] com as restrições entre [p..k-1]. */
 	long long solve_col_aux(int y, int x, int p){
 		long long ans, ret;
 		int i, k;
@@ -297,6 +308,7 @@ public:
 		return ans;
 	}
 
+	/* Função que calcula as possibilidades da coluna y. */
 	long long solve_col(int y){
 		// Inicializando número de combinações
 		fill_matrix(col_black, 0, y, n, y, 0);
@@ -305,28 +317,35 @@ public:
 		return col_combinations[y] = solve_col_aux(y, 1, 0);
 	}
 
+	/* Função que calcula todas as possibilidades do tabuleiro inteiro. */
 	void solve(){
 		int x, y;
 
+		// Atualizando a soma acumulada para realizar as queries.
 		update_sum();
 
+		// Calculando as possibilidades de todas as linhas.
 		for (x = 1; x <= n; x++){
 			solve_row(x);
 		}
 
+		// Calculando as possibilidades de todas as colunas.
 		for (y = 1; y <= m; y++){
 			solve_col(y);
 		}
 	}
 
+	/* Função que verifica se a linha x está válida (possui alguma combinação possível). */
 	bool valid_row(int x){
 		return solve_row(x) > 0;
 	}
 
+	/* Função que verifica se a coluna y está válida (possui alguma combinação possível). */
 	bool valid_col(int y){
 		return solve_col(y) > 0;
 	}
 
+	/* Função que verifica se a linha x e a coluna y estão válidas. */
 	bool valid(int x, int y){
 		update_sum();
 		return valid_row(x) and valid_col(y);
@@ -453,7 +472,64 @@ bool blind_search(Board &b){
 	return false;
 }
 
-bool smart_search(Board &b){
+bool smart_search_old(Board &b){
+	Cell best, cur_black, cur_white;
+	int x, y;
+
+	// b.solve();
+	best = Cell(0, 0, NONE, 0, 1);
+
+	for (x = 1; x <= b.n; x++){
+		for (y = 1; y <= b.m; y++){
+			if (b.mat[x][y] == NONE){
+				// Forward checking.
+				if (b.row_black[x][y] * b.col_black[x][y] + b.row_white[x][y] * b.col_white[x][y] == 0){
+					return false;
+				}
+
+				cur_black = Cell(x, y, BLACK, b.row_black[x][y] * b.col_black[x][y], b.row_black[x][y] * b.col_black[x][y] + b.row_white[x][y] * b.col_white[x][y]);
+				cur_white = Cell(x, y, WHITE, b.row_white[x][y] * b.col_white[x][y], b.row_black[x][y] * b.col_black[x][y] + b.row_white[x][y] * b.col_white[x][y]);
+
+				if (cur_black > best){
+					best = cur_black;
+				}
+
+				if (cur_white > best){
+					best = cur_white;
+				}
+			}
+		}
+	}
+
+	if (best.color == NONE){
+		return true;
+	}
+
+	x = best.x;
+	y = best.y;
+
+	b.mat[x][y] = best.color;
+	count++;
+
+	if (b.valid(x, y) and smart_search_old(b)){
+		return true;
+	}
+
+	b.mat[x][y] = b.toggle(best.color);
+	count++;
+
+	if (b.valid(x, y) and smart_search_old(b)){
+		return true;
+	}
+
+	b.mat[x][y] = NONE;
+
+	b.valid(x, y);
+
+	return false;
+}
+
+bool smart_search_new(Board &b){
 	Cell best, cur_black_row, cur_black_col, cur_white_row, cur_white_col;
 	int x, y;
 
@@ -488,18 +564,20 @@ bool smart_search(Board &b){
 	b.mat[x][y] = best.color;
 	count++;
 
-	if (b.valid(x, y) and smart_search(b)){
+	if (b.valid(x, y) and smart_search_new(b)){
 		return true;
 	}
 
 	b.mat[x][y] = b.toggle(best.color);
 	count++;
 
-	if (b.valid(x, y) and smart_search(b)){
+	if (b.valid(x, y) and smart_search_new(b)){
 		return true;
 	}
 
 	b.mat[x][y] = NONE;
+
+	b.valid(x, y);
 
 	return false;
 }
@@ -540,6 +618,25 @@ void print_possibilities(Board &b){
 	}
 }
 
+char pgm(int color){
+	return color == BLACK ? '1' : '0';
+}
+
+void print_pgm(Board &b){
+	int i, j;
+
+	printf("P1\n");
+	printf("%d %d\n", b.m, b.n);
+
+	for (i = 1; i <= b.n; i++){
+		for (j = 1; j < b.m; j++){
+			printf("%c ", pgm(b.mat[i][j]));
+		}
+
+		printf("%c\n", pgm(b.mat[i][j]));
+	}
+}
+
 int main(int argc, char *argv[]){
 	Board b;
 
@@ -548,17 +645,21 @@ int main(int argc, char *argv[]){
 
 	b.solve();
 
-	print_possibilities(b);
+	// print_possibilities(b);
 
 	// Busca cega.
-	blind_search(b);
+	// blind_search(b);
 
 	// Busca heurística.
-	// smart_search(b);
+	smart_search_new(b);
+
+	// Busca heurística descrita na definição do tema.
+	// smart_search_old(b);
 
 	// Imprimindo resultado.
-	b.print();
-	printf("Count = %d\n", count);
+	// b.print();
+	print_pgm(b);
+	// printf("Count = %d\n", count);
 
 	return 0;
 }
