@@ -4,13 +4,9 @@ run:
 	@./main
 blind:
 	@./main blind
-full_blind:
+blind_all:
 	@./main blind all
 smart:
 	@./main smart
-full_smart:
+smart_all:
 	@./main smart all
-test_blind:
-	./main blind < cases/$(f).in
-test_smart:
-	./main smart < cases/$(f).in

@@ -93,6 +93,12 @@ bool blind_search(Board &b, int &paint_count, bool solution){
 	// Se todas as casas já estiverem preenchidas.
 	if (x > b.n){
 		b.print();
+
+		if (solution){
+			b.print_pgm();
+			printf("Solution saved to file \"solution.pgm\"\n");
+		}
+
 		return solution;
 	}
 
@@ -160,6 +166,12 @@ bool smart_search(Board &b, int &paint_count, bool solution){
 	// Se todas as casas já estiverem preenchidas.
 	if (best_color == NONE){
 		b.print();
+
+		if (solution){
+			b.print_pgm();
+			printf("Solution saved to file \"solution.pgm\"\n");
+		}
+
 		return solution;
 	}
 

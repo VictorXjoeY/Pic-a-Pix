@@ -193,18 +193,27 @@ public:
 
 	/* O(N * M) Imprime o tabuleiro em formato PGM. */
 	void print_pgm(){
-		int i, j;
+		int scale, i, j;
+		FILE *fp;
 
-		printf("P1\n");
-		printf("%d %d\n", m, n);
+		// Fazendo com que a coordenada mínima seja pelo menos 1000.
+		scale = (1000 + min(n, m) - 1) / min(n, m);
 
-		for (i = 1; i <= n; i++){
-			for (j = 1; j < m; j++){
-				printf("%c ", pgm_char(mat[i][j]));
+		fp = fopen("solution.pgm", "w");
+
+		fprintf(fp, "P1\n");
+		fprintf(fp, "%d %d\n", scale * m, scale * n);
+		fprintf(fp, "1\n");
+
+		for (i = 0; i < scale * n; i++){
+			for (j = 0; j < scale * m - 1; j++){
+				fprintf(fp, "%c ", pgm_char(mat[(i / scale) + 1][(j / scale) + 1]));
 			}
 
-			printf("%c\n", pgm_char(mat[i][j]));
+			fprintf(fp, "%c\n", pgm_char(mat[(i / scale) + 1][(j / scale) + 1]));
 		}
+
+		fclose(fp);
 	}
 
 	/* O(Dimensão * Restrições * Restrição_Máxima). Inicializa a dp com -1. */
