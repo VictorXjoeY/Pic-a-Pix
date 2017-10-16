@@ -11,7 +11,9 @@ int main(){
 	int cur, n, m, i, j;
 
 	// Lendo a matriz.
-	assert(scanf("%d%d", &n, &m) == 2);
+	assert(scanf("%*[^\r\n]") == 0);
+	assert(scanf("%d%d", &m, &n) == 2);
+	assert(scanf("%*[^\r\n]") == 0);
 
 	mat.resize(n + 1);
 	row.resize(n + 1);

@@ -19,6 +19,7 @@ public:
 	vector<vector<long long> > row_white; // Número de combinações da linha i nas quais a celula (i, j) é pintada de branco.
 	vector<vector<long long> > col_black; // Número de combinações da coluna j nas quais a celula (i, j) é pintada de preto.
 	vector<vector<long long> > col_white; // Número de combinações da coluna j nas quais a celula (i, j) é pintada de branco.
+	vector<vector<vector<long long> > > dp; // Tabela de memoização para Programação Dinâmica.
 	vector<long long> row_combinations; // Número de combinações da linha i.
 	vector<long long> col_combinations; // Número de combinações da coluna j.
 	int n, m; // (Constant) Dimensões do tabuleiro.
@@ -54,7 +55,7 @@ public:
 		this->col_white.resize(n + 1);
 
 		// Alocando as colunas.
-		for (i = 0; i <= n; i++){
+		for (i = 0; i <= n; i++){			
 			// Tabuleiro vazio.
 			this->mat[i].assign(m + 1, NONE);
 
@@ -64,6 +65,9 @@ public:
 			this->col_black[i].assign(m + 1, 0);
 			this->col_white[i].assign(m + 1, 0);
 		}
+
+		// Tabela da DP.
+		this->dp.resize(max(n, m) + 1);
 	}
 
 	/* O(1) Retorna o símbolo de impressão de cada cor. */
@@ -203,34 +207,19 @@ public:
 		}
 	}
 
-	/* O(Dimensão * Restrições * Restrição_Máxima). Aloca uma dp com dimensões AxBxC. */
-	void alloc_dp(vector<vector<vector<long long> > > &dp, int a, int b, int c){
+	/* O(Dimensão * Restrições * Restrição_Máxima). Inicializa a dp com -1. */
+	void init_dp(int a, int b, int c){
 		int i, j;
-
-		dp.resize(a);
 
 		for (i = 0; i < a; i++){
-			dp[i].resize(b);
-
 			for (j = 0; j < b; j++){
-				dp[i][j].resize(c);
-			}
-		}
-	}
-
-	/* O(Dimensão * Restrições * Restrição_Máxima). Inicializa a dp com -1. */
-	void init_dp(vector<vector<vector<long long> > > &dp){
-		int i, j;
-
-		for (i = 0; i < (int)dp.size(); i++){
-			for (j = 0; j < (int)dp[i].size(); j++){
-				fill(dp[i][j].begin(), dp[i][j].end(), -1);
+				fill(dp[i][j].begin(), dp[i][j].begin() + c, -1);
 			}
 		}
 	}
 
 	/* O(M * Restrições * Restrição_Máxima). Calcula o número de possibilidades para a linha x. */
-	long long solve_row_aux(vector<vector<vector<long long> > > &dp, int x, int y, int p, int c){
+	long long solve_row_aux(int x, int y, int p, int c){
 		// Caso base.
 		if (y == m + 1){
 			return p == (int)row[x].size() and c <= 1;
@@ -248,24 +237,22 @@ public:
 
 		// Preto ou branco.
 		if (p < (int)row[x].size() and c <= 1){
-			return dp[y][p][c] = solve_row_aux(dp, x, y + 1, p + 1, row[x][p] + 1) + solve_row_aux(dp, x, y + 1, p, 0);
+			return dp[y][p][c] = solve_row_aux(x, y + 1, p + 1, row[x][p] + 1) + solve_row_aux(x, y + 1, p, 0);
 		}
 
 		// Passando pra frente.
-		return dp[y][p][c] = solve_row_aux(dp, x, y + 1, p, max(0, c - 1));
+		return dp[y][p][c] = solve_row_aux(x, y + 1, p, max(0, c - 1));
 	}
 
 	void full_solve_row(int x){
-		vector<vector<vector<long long> > > dp;
 		int k, y;
 
 		// Inicializando a DP.
 		k = *max_element(row[x].begin(), row[x].end());		
-		alloc_dp(dp, m + 1, (int)row[x].size() + 1, k + 2);
 
 		// Calculando o número de combinações da linha.
-		init_dp(dp);
-		row_combinations[x] = solve_row_aux(dp, x, 1, 0, 0) + solve_row_aux(dp, x, 1, 1, row[x][0] + 1);
+		init_dp(m + 1, (int)row[x].size() + 1, k + 2);
+		row_combinations[x] = solve_row_aux(x, 1, 0, 0) + solve_row_aux(x, 1, 1, row[x][0] + 1);
 
 		if (row_combinations[x] == 0){
 			return;
@@ -284,13 +271,13 @@ public:
 			}
 			else{
 				// Se ainda não estiver pintado devo calcular as possibilidades.
-				init_dp(dp);
+				init_dp(m + 1, (int)row[x].size() + 1, k + 2);
 				mat[x][y] = BLACK;
-				row_black[x][y] = solve_row_aux(dp, x, 1, 0, 0) + solve_row_aux(dp, x, 1, 1, row[x][0] + 1);
+				row_black[x][y] = solve_row_aux(x, 1, 0, 0) + solve_row_aux(x, 1, 1, row[x][0] + 1);
 				
-				init_dp(dp);
+				init_dp(m + 1, (int)row[x].size() + 1, k + 2);
 				mat[x][y] = WHITE;
-				row_white[x][y] = solve_row_aux(dp, x, 1, 0, 0) + solve_row_aux(dp, x, 1, 1, row[x][0] + 1);
+				row_white[x][y] = solve_row_aux(x, 1, 0, 0) + solve_row_aux(x, 1, 1, row[x][0] + 1);
 
 				mat[x][y] = NONE;
 			}
@@ -299,20 +286,18 @@ public:
 
 	/* Função que calcula as possibilidades da linha x. */
 	void simple_solve_row(int x){
-		vector<vector<vector<long long> > > dp;
 		int k;
 
 		// Inicializando a DP.
-		k = *max_element(row[x].begin(), row[x].end());		
-		alloc_dp(dp, m + 1, (int)row[x].size() + 1, k + 2);
+		k = *max_element(row[x].begin(), row[x].end());	
 
 		// Calculando o número de combinações da linha.
-		init_dp(dp);
-		row_combinations[x] = solve_row_aux(dp, x, 1, 0, 0) + solve_row_aux(dp, x, 1, 1, row[x][0] + 1);
+		init_dp(m + 1, (int)row[x].size() + 1, k + 2);
+		row_combinations[x] = solve_row_aux(x, 1, 0, 0) + solve_row_aux(x, 1, 1, row[x][0] + 1);
 	}
 
 	/* O(M * Restrições * Restrição_Máxima). Calcula o número de possibilidades para a coluna y. */
-	long long solve_col_aux(vector<vector<vector<long long> > > &dp, int y, int x, int p, int c){
+	long long solve_col_aux(int y, int x, int p, int c){
 		// Caso base.
 		if (x == n + 1){
 			return p == (int)col[y].size() and c <= 1;
@@ -330,24 +315,22 @@ public:
 
 		// Preto ou branco.
 		if (p < (int)col[y].size() and c <= 1){
-			return dp[x][p][c] = solve_col_aux(dp, y, x + 1, p + 1, col[y][p] + 1) + solve_col_aux(dp, y, x + 1, p, 0);
+			return dp[x][p][c] = solve_col_aux(y, x + 1, p + 1, col[y][p] + 1) + solve_col_aux(y, x + 1, p, 0);
 		}
 
 		// Passando pra frente
-		return dp[x][p][c] = solve_col_aux(dp, y, x + 1, p, max(0, c - 1));
+		return dp[x][p][c] = solve_col_aux(y, x + 1, p, max(0, c - 1));
 	}
 
 	void full_solve_col(int y){
-		vector<vector<vector<long long> > > dp;
 		int k, x;
 
 		// Inicializando a DP.
 		k = *max_element(col[y].begin(), col[y].end());
-		alloc_dp(dp, n + 1, (int)col[y].size() + 1, k + 2);
 
 		// Calculando o número de combinações da linha.
-		init_dp(dp);
-		col_combinations[y] = solve_col_aux(dp, y, 1, 0, 0) + solve_col_aux(dp, y, 1, 1, col[y][0] + 1);	
+		init_dp(n + 1, (int)col[y].size() + 1, k + 2);
+		col_combinations[y] = solve_col_aux(y, 1, 0, 0) + solve_col_aux(y, 1, 1, col[y][0] + 1);	
 
 		if (col_combinations[y] == 0){
 			return;
@@ -366,13 +349,13 @@ public:
 			}
 			else{
 				// Se ainda não estiver pintado devo calcular as possibilidades.
-				init_dp(dp);
+				init_dp(n + 1, (int)col[y].size() + 1, k + 2);
 				mat[x][y] = BLACK;
-				col_black[x][y] = solve_col_aux(dp, y, 1, 0, 0) + solve_col_aux(dp, y, 1, 1, col[y][0] + 1);
+				col_black[x][y] = solve_col_aux(y, 1, 0, 0) + solve_col_aux(y, 1, 1, col[y][0] + 1);
 				
-				init_dp(dp);
+				init_dp(n + 1, (int)col[y].size() + 1, k + 2);
 				mat[x][y] = WHITE;
-				col_white[x][y] = solve_col_aux(dp, y, 1, 0, 0) + solve_col_aux(dp, y, 1, 1, col[y][0] + 1);
+				col_white[x][y] = solve_col_aux(y, 1, 0, 0) + solve_col_aux(y, 1, 1, col[y][0] + 1);
 
 				mat[x][y] = NONE;
 			}
@@ -381,16 +364,14 @@ public:
 
 	/* Função que calcula as possibilidades da linha x. */
 	void simple_solve_col(int y){
-		vector<vector<vector<long long> > > dp;
 		int k;
 
 		// Inicializando a DP.
 		k = *max_element(col[y].begin(), col[y].end());
-		alloc_dp(dp, n + 1, (int)col[y].size() + 1, k + 2);
 
 		// Calculando o número de combinações da linha.
-		init_dp(dp);
-		col_combinations[y] = solve_col_aux(dp, y, 1, 0, 0) + solve_col_aux(dp, y, 1, 1, col[y][0] + 1);	
+		init_dp(n + 1, (int)col[y].size() + 1, k + 2);
+		col_combinations[y] = solve_col_aux(y, 1, 0, 0) + solve_col_aux(y, 1, 1, col[y][0] + 1);	
 	}
 
 	/* Função que calcula todas as possibilidades do tabuleiro inteiro. */

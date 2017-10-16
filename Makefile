@@ -10,3 +10,7 @@ smart:
 	@./main smart
 full_smart:
 	@./main smart all
+test_blind:
+	./main blind < cases/$(f).in
+test_smart:
+	./main smart < cases/$(f).in

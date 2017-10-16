@@ -10,7 +10,7 @@ using namespace std;
 
 /* Função que lê um tabuleiro da stdin. */
 Board read_board(){
-	int n, m, k, i, j;
+	int n, m, k, k_max, res_max, i, j;
 	Board b;
 
 	assert(scanf("%d%d", &n, &m) == 2);
@@ -18,15 +18,21 @@ Board read_board(){
 	// Criando um tabuleiro vazio N x M.
 	b = Board(n, m);
 
+	k_max = 0;
+	res_max = 0;
+
 	// Lendo as restrições-linha.
 	for (i = 1; i <= n; i++){
 		assert(scanf("%d", &k) == 1);
+
+		k_max = max(k_max, k);
 
 		if (k){
 			b.row[i].resize(k);
 
 			for (j = 0; j < k; j++){
 				assert(scanf("%d", &b.row[i][j]) == 1);
+				res_max = max(res_max, b.row[i][j]);
 			}
 		}
 		else{
@@ -39,16 +45,28 @@ Board read_board(){
 	for (i = 1; i <= m; i++){
 		assert(scanf("%d", &k) == 1);
 
+		k_max = max(k_max, k);
+
 		if (k){
 			b.col[i].resize(k);
 
 			for (j = 0; j < k; j++){
 				assert(scanf("%d", &b.col[i][j]) == 1);
+				res_max = max(res_max, b.col[i][j]);
 			}
 		}
 		else{
 			b.col[i].resize(1);
 			b.col[i][0] = 0;
+		}
+	}
+
+	// Alocando a DP.
+	for (i = 0; i <= max(n, m); i++){
+		b.dp[i].resize(k_max + 1);
+
+		for (j = 0; j <= k_max; j++){
+			b.dp[i][j].resize(res_max + 2);
 		}
 	}
 
@@ -180,7 +198,7 @@ int main(int argc, char *argv[]){
 	Board b;
 
 	if (argc == 1){
-		printf("Please use make blind to run the Blind Search or make smart to run the Smart Search.\n");
+		printf("Please use \"make blind\" to run the Blind Search or \"make smart\" to run the Smart Search.\n");
 		return 0;
 	}
 
@@ -188,7 +206,7 @@ int main(int argc, char *argv[]){
 
 	// Lendo o tabuleiro.
 	b = read_board();
-	
+
 	if (!strcmp(argv[1], "blind")){
 		// Busca cega.
 		blind_search(b, paint_count, argc != 3 or strcmp(argv[2], "all"));
