@@ -69,14 +69,14 @@ public:
 	/* O(1) Retorna o símbolo de impressão de cada cor. */
 	static char symbol(int type){
 		if (type == WHITE){
-			return '_';
+			return '.';
 		}
 
 		if (type == BLACK){
 			return '#';
 		}
 
-		return '.';
+		return '_';
 	}
 
 	/* O(1) Retorna a cor oposta. */
@@ -255,8 +255,7 @@ public:
 		return dp[y][p][c] = solve_row_aux(dp, x, y + 1, p, max(0, c - 1));
 	}
 
-	/* Função que calcula as possibilidades da linha x. */
-	void solve_row(int x){
+	void full_solve_row(int x){
 		vector<vector<vector<long long> > > dp;
 		int k, y;
 
@@ -267,6 +266,10 @@ public:
 		// Calculando o número de combinações da linha.
 		init_dp(dp);
 		row_combinations[x] = solve_row_aux(dp, x, 1, 0, 0) + solve_row_aux(dp, x, 1, 1, row[x][0] + 1);
+
+		if (row_combinations[x] == 0){
+			return;
+		}
 
 		for (y = 1; y <= m; y++){
 			if (mat[x][y] == BLACK){
@@ -294,13 +297,28 @@ public:
 		}
 	}
 
-	/* Função que calcula as possibilidades para a linha x entre [y..m] com as restrições entre [p..k-1]. */
+	/* Função que calcula as possibilidades da linha x. */
+	void simple_solve_row(int x){
+		vector<vector<vector<long long> > > dp;
+		int k;
+
+		// Inicializando a DP.
+		k = *max_element(row[x].begin(), row[x].end());		
+		alloc_dp(dp, m + 1, (int)row[x].size() + 1, k + 2);
+
+		// Calculando o número de combinações da linha.
+		init_dp(dp);
+		row_combinations[x] = solve_row_aux(dp, x, 1, 0, 0) + solve_row_aux(dp, x, 1, 1, row[x][0] + 1);
+	}
+
+	/* O(M * Restrições * Restrição_Máxima). Calcula o número de possibilidades para a coluna y. */
 	long long solve_col_aux(vector<vector<vector<long long> > > &dp, int y, int x, int p, int c){
 		// Caso base.
 		if (x == n + 1){
 			return p == (int)col[y].size() and c <= 1;
 		}
 
+		// Estado já calculado.
 		if (dp[x][p][c] != -1){
 			return dp[x][p][c];
 		}
@@ -319,8 +337,7 @@ public:
 		return dp[x][p][c] = solve_col_aux(dp, y, x + 1, p, max(0, c - 1));
 	}
 
-	/* Função que calcula as possibilidades da linha x. */
-	void solve_col(int y){
+	void full_solve_col(int y){
 		vector<vector<vector<long long> > > dp;
 		int k, x;
 
@@ -330,7 +347,11 @@ public:
 
 		// Calculando o número de combinações da linha.
 		init_dp(dp);
-		col_combinations[y] = solve_col_aux(dp, y, 1, 0, 0) + solve_col_aux(dp, y, 1, 1, col[y][0] + 1);
+		col_combinations[y] = solve_col_aux(dp, y, 1, 0, 0) + solve_col_aux(dp, y, 1, 1, col[y][0] + 1);	
+
+		if (col_combinations[y] == 0){
+			return;
+		}
 
 		for (x = 1; x <= n; x++){
 			if (mat[x][y] == BLACK){
@@ -358,37 +379,59 @@ public:
 		}
 	}
 
+	/* Função que calcula as possibilidades da linha x. */
+	void simple_solve_col(int y){
+		vector<vector<vector<long long> > > dp;
+		int k;
+
+		// Inicializando a DP.
+		k = *max_element(col[y].begin(), col[y].end());
+		alloc_dp(dp, n + 1, (int)col[y].size() + 1, k + 2);
+
+		// Calculando o número de combinações da linha.
+		init_dp(dp);
+		col_combinations[y] = solve_col_aux(dp, y, 1, 0, 0) + solve_col_aux(dp, y, 1, 1, col[y][0] + 1);	
+	}
+
 	/* Função que calcula todas as possibilidades do tabuleiro inteiro. */
 	void solve(){
 		int x, y;
 
 		// Calculando as possibilidades de todas as linhas.
 		for (x = 1; x <= n; x++){
-			solve_row(x);
-			printf("Done line %d\n", x);
+			full_solve_row(x);
 		}
 
 		// Calculando as possibilidades de todas as colunas.
 		for (y = 1; y <= m; y++){
-			solve_col(y);
-			printf("Done column %d\n", y);
+			full_solve_col(y);
 		}
 	}
 
 	/* Função que verifica se a linha x está válida (possui alguma combinação possível). */
 	bool valid_row(int x){
-		solve_row(x);
 		return row_combinations[x] > 0;
 	}
 
 	/* Função que verifica se a coluna y está válida (possui alguma combinação possível). */
 	bool valid_col(int y){
-		solve_col(y);
 		return col_combinations[y] > 0;
 	}
 
 	/* Função que verifica se a linha x e a coluna y estão válidas. */
 	bool valid(int x, int y){
 		return valid_row(x) and valid_col(y);
+	}
+
+	/* Função que atualiza as combinações da linha x e da coluna y. */
+	void simple_update(int x, int y){
+		simple_solve_row(x);
+		simple_solve_col(y);
+	}
+
+	/* Função que atualiza as combinações da linha x e da coluna y e de seus pixels. */
+	void full_update(int x, int y){
+		full_solve_row(x);
+		full_solve_col(y);
 	}
 };
