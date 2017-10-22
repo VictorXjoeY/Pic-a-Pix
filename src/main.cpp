@@ -10,7 +10,7 @@ using namespace std;
 
 /* Função que lê um tabuleiro da stdin. */
 Board read_board(){
-	int n, m, k, k_max, res_max, i, j;
+	int n, m, k, k_max, i, j;
 	Board b;
 
 	assert(scanf("%d%d", &n, &m) == 2);
@@ -19,7 +19,6 @@ Board read_board(){
 	b = Board(n, m);
 
 	k_max = 0;
-	res_max = 0;
 
 	// Lendo as restrições-linha.
 	for (i = 1; i <= n; i++){
@@ -29,15 +28,17 @@ Board read_board(){
 
 		if (k){
 			b.row[i].resize(k);
+			b.row_sum[i].resize(k);
 
 			for (j = 0; j < k; j++){
 				assert(scanf("%d", &b.row[i][j]) == 1);
-				res_max = max(res_max, b.row[i][j]);
 			}
-		}
-		else{
-			b.row[i].resize(1);
-			b.row[i][0] = 0;
+
+			b.row_sum[i][0] = b.row[i][0];
+
+			for (j = 1; j < k; j++){
+				b.row_sum[i][j] = b.row_sum[i][j - 1] + b.row[i][j];
+			}
 		}
 	}
 
@@ -49,25 +50,23 @@ Board read_board(){
 
 		if (k){
 			b.col[i].resize(k);
+			b.col_sum[i].resize(k);
 
 			for (j = 0; j < k; j++){
 				assert(scanf("%d", &b.col[i][j]) == 1);
-				res_max = max(res_max, b.col[i][j]);
 			}
-		}
-		else{
-			b.col[i].resize(1);
-			b.col[i][0] = 0;
+
+			b.col_sum[i][0] = b.col[i][0];
+
+			for (j = 1; j < k; j++){
+				b.col_sum[i][j] = b.col_sum[i][j - 1] + b.col[i][j];
+			}
 		}
 	}
 
 	// Alocando a DP.
 	for (i = 0; i <= max(n, m); i++){
 		b.dp[i].resize(k_max + 1);
-
-		for (j = 0; j <= k_max; j++){
-			b.dp[i][j].resize(res_max + 2);
-		}
 	}
 
 	return b;
@@ -102,8 +101,8 @@ bool blind_search(Board &b, int &paint_count, bool solution){
 		return solution;
 	}
 
-	// Tentando pintar a casa de preto.
-	b.mat[x][y] = BLACK;
+	// Tentando pintar a casa de branco.
+	b.mat[x][y] = WHITE;
 	b.simple_update(x, y);
 	paint_count++;
 
@@ -111,8 +110,8 @@ bool blind_search(Board &b, int &paint_count, bool solution){
 		return true;
 	}
 
-	// Tentando pintar a casa de branco.
-	b.mat[x][y] = WHITE;
+	// Tentando pintar a casa de preto.
+	b.mat[x][y] = BLACK;
 	b.simple_update(x, y);
 	paint_count++;
 

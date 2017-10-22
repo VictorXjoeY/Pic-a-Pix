@@ -13,13 +13,17 @@ using namespace std;
 class Board{
 public:
 	vector<vector<int> > row; // (Constant) Restrições das linhas.
+	vector<vector<int> > row_sum; // (Constant) Soma acumulada das restrições das linhas.
+	vector<vector<int> > mat_row_sum[3]; // (Constant) Soma acumulada das linhas da matriz.
 	vector<vector<int> > col; // (Constant) Restrições das colunas.
+	vector<vector<int> > col_sum; // (Constant) Soma acumulada das restrições das colunas.
+	vector<vector<int> > mat_col_sum[3]; // (Constant) Soma acumulada das colunas da matriz.
 	vector<vector<int> > mat; // Matriz N x M (1-based).
 	vector<vector<long long> > row_black; // Número de combinações da linha i nas quais a celula (i, j) é pintada de preto.
 	vector<vector<long long> > row_white; // Número de combinações da linha i nas quais a celula (i, j) é pintada de branco.
 	vector<vector<long long> > col_black; // Número de combinações da coluna j nas quais a celula (i, j) é pintada de preto.
 	vector<vector<long long> > col_white; // Número de combinações da coluna j nas quais a celula (i, j) é pintada de branco.
-	vector<vector<vector<long long> > > dp; // Tabela de memoização para Programação Dinâmica.
+	vector<vector<long long> > dp; // Tabela de memoização para Programação Dinâmica.
 	vector<long long> row_combinations; // Número de combinações da linha i.
 	vector<long long> col_combinations; // Número de combinações da coluna j.
 	int n, m; // (Constant) Dimensões do tabuleiro.
@@ -31,7 +35,7 @@ public:
 
 	// O(N * M) Construtor.
 	Board(int n, int m){
-		int i;
+		int i, k;
 
 		// Dimensões.
 		this->n = n;
@@ -39,7 +43,9 @@ public:
 
 		// Restrições.
 		this->row.resize(n + 1);
+		this->row_sum.resize(n + 1);
 		this->col.resize(m + 1);
+		this->col_sum.resize(m + 1);
 
 		// Número de combinações de cada linha/coluna.
 		this->row_combinations.assign(n + 1, 0);
@@ -47,6 +53,12 @@ public:
 
 		// Matriz principal.
 		this->mat.resize(n + 1);
+
+		// Matrizes de soma acumulada
+		for (k = 0; k < 3; k++){
+			this->mat_row_sum[k].resize(n + 1);
+			this->mat_col_sum[k].resize(n + 1);
+		}
 
 		// Número de combinações.
 		this->row_black.resize(n + 1);
@@ -58,6 +70,12 @@ public:
 		for (i = 0; i <= n; i++){			
 			// Tabuleiro vazio.
 			this->mat[i].assign(m + 1, NONE);
+
+			// Matrizes de soma acumulada vazias.
+			for (k = 0; k < 3; k++){
+				this->mat_row_sum[k][i].assign(m + 1, 0);
+				this->mat_col_sum[k][i].assign(m + 1, 0);
+			}
 
 			// Número de combinações vazio.
 			this->row_black[i].assign(m + 1, 0);
@@ -95,11 +113,19 @@ public:
 		// Obtendo o número máximo de restrições-linha.
 		for (i = 1, krow_max = 0; i <= n; i++){
 			krow_max = max(krow_max, (int)row[i].size());
+
+			if (row[i].empty()){
+				row[i].push_back(0);
+			}
 		}
 
 		// Obtendo o número máximo de restrições-coluna.
 		for (i = 1, kcol_max = 0; i <= m; i++){
 			kcol_max = max(kcol_max, (int)col[i].size());
+
+			if (col[i].empty()){
+				col[i].push_back(0);
+			}
 		}
 
 		// Imprimindo dimensões do tabuleiro.
@@ -140,6 +166,18 @@ public:
 			}
 
 			printf("\n");
+		}
+
+		for (i = 1; i <= n; i++){
+			if (row[i][0] == 0){
+				row[i].clear();
+			}
+		}
+
+		for (i = 1; i <= m; i++){
+			if (col[i][0] == 0){
+				col[i].clear();
+			}
 		}
 	}
 
@@ -217,52 +255,77 @@ public:
 	}
 
 	/* O(Dimensão * Restrições * Restrição_Máxima). Inicializa a dp com -1. */
-	void init_dp(int a, int b, int c){
-		int i, j;
+	void init_dp(int a, int b){
+		int i;
 
 		for (i = 0; i < a; i++){
-			for (j = 0; j < b; j++){
-				fill(dp[i][j].begin(), dp[i][j].begin() + c, -1);
+			fill(dp[i].begin(), dp[i].begin() + b, -1);
+		}
+	}
+
+	long long solve_row_aux(int x, int y, int p){
+		int k;
+
+		// Caso base.
+		if (p == (int)row[x].size()){
+			return count_query_row(x, y, m, BLACK) == 0;
+		}
+
+		// Quantidade mínima de casas para conseguir preencher tudo.
+		k = query_row(x, p, row[x].size() - 1) + row[x].size() - p - 1;
+
+		// Corte.
+		if (m - y < k or mat[x][y] == BLACK){
+			return 0;
+		}
+
+		if (dp[y][p] != -1){
+			return dp[y][p];
+		}
+
+		// Se não tiver branco nas próximas casas posso escolher entre preencher a restrição ou não.
+		if (count_query_row(x, y + 1, y + row[x][p], WHITE) == 0){
+			return dp[y][p] = solve_row_aux(x, y + row[x][p] + 1, p + 1) + solve_row_aux(x, y + 1, p);
+		}
+
+		// Não preenche a restrição.
+		return dp[y][p] = solve_row_aux(x, y + 1, p);
+	}
+
+	void special_row(int x){
+		int y;
+
+		if (count_query_row(x, 1, m, BLACK) == 0){
+			row_combinations[x] = 1;
+
+			for (y = 1; y <= m; y++){
+				row_black[x][y] = 0;
+				row_white[x][y] = 1;
+			}
+		}
+		else{
+			row_combinations[x] = 0;
+
+			for (y = 1; y <= m; y++){
+				row_black[x][y] = 0;
+				row_white[x][y] = 0;
 			}
 		}
 	}
 
-	/* O(M * Restrições * Restrição_Máxima). Calcula o número de possibilidades para a linha x. */
-	long long solve_row_aux(int x, int y, int p, int c){
-		// Caso base.
-		if (y == m + 1){
-			return p == (int)row[x].size() and c <= 1;
-		}
-
-		// Estado já calculado.
-		if (dp[y][p][c] != -1){
-			return dp[y][p][c];
-		}
-
-		// Corte por impossibilidade.
-		if ((c > 1 and mat[x][y] == WHITE) or (c <= 1 and mat[x][y] == BLACK)){
-			return dp[y][p][c] = 0;
-		}
-
-		// Preto ou branco.
-		if (p < (int)row[x].size() and c <= 1){
-			return dp[y][p][c] = solve_row_aux(x, y + 1, p + 1, row[x][p] + 1) + solve_row_aux(x, y + 1, p, 0);
-		}
-
-		// Passando pra frente.
-		return dp[y][p][c] = solve_row_aux(x, y + 1, p, max(0, c - 1));
-	}
-
 	void full_solve_row(int x){
-		int k, y;
+		int y;
 
-		// Inicializando a DP.
-		k = *max_element(row[x].begin(), row[x].end());		
+		if (row[x].empty()){
+			special_row(x);
+			return;
+		}
 
 		// Calculando o número de combinações da linha.
-		init_dp(m + 1, (int)row[x].size() + 1, k + 2);
-		row_combinations[x] = solve_row_aux(x, 1, 0, 0) + solve_row_aux(x, 1, 1, row[x][0] + 1);
+		init_dp(m + 1, (int)row[x].size() + 1);
+		row_combinations[x] = solve_row_aux(x, 1, 0) + (count_query_row(x, 1, row[x][0], WHITE) == 0 ? solve_row_aux(x, row[x][0] + 1, 1) : 0);
 
+		// Se não houver nenhuma combinação da linha.
 		if (row_combinations[x] == 0){
 			return;
 		}
@@ -280,67 +343,95 @@ public:
 			}
 			else{
 				// Se ainda não estiver pintado devo calcular as possibilidades.
-				init_dp(m + 1, (int)row[x].size() + 1, k + 2);
 				mat[x][y] = BLACK;
-				row_black[x][y] = solve_row_aux(x, 1, 0, 0) + solve_row_aux(x, 1, 1, row[x][0] + 1);
-				
-				init_dp(m + 1, (int)row[x].size() + 1, k + 2);
-				mat[x][y] = WHITE;
-				row_white[x][y] = solve_row_aux(x, 1, 0, 0) + solve_row_aux(x, 1, 1, row[x][0] + 1);
+				update_row(x);
+
+				init_dp(m + 1, (int)row[x].size() + 1);
+				row_black[x][y] = solve_row_aux(x, 1, 0) + (count_query_row(x, 1, row[x][0], WHITE) == 0 ? solve_row_aux(x, row[x][0] + 1, 1) : 0);
+				row_white[x][y] = row_combinations[x] - row_black[x][y];
 
 				mat[x][y] = NONE;
+				update_row(x);
 			}
 		}
 	}
 
 	/* Função que calcula as possibilidades da linha x. */
 	void simple_solve_row(int x){
-		int k;
-
-		// Inicializando a DP.
-		k = *max_element(row[x].begin(), row[x].end());	
-
 		// Calculando o número de combinações da linha.
-		init_dp(m + 1, (int)row[x].size() + 1, k + 2);
-		row_combinations[x] = solve_row_aux(x, 1, 0, 0) + solve_row_aux(x, 1, 1, row[x][0] + 1);
+		init_dp(m + 1, (int)row[x].size() + 1);
+
+		if (!row[x].empty() and count_query_row(x, 1, row[x][0], WHITE) == 0){
+			row_combinations[x] = solve_row_aux(x, 1, 0) + solve_row_aux(x, row[x][0] + 1, 1);
+		}
+		else{
+			row_combinations[x] = solve_row_aux(x, 1, 0);
+		}
 	}
 
-	/* O(M * Restrições * Restrição_Máxima). Calcula o número de possibilidades para a coluna y. */
-	long long solve_col_aux(int y, int x, int p, int c){
+	long long solve_col_aux(int y, int x, int p){
+		int k;
+
 		// Caso base.
-		if (x == n + 1){
-			return p == (int)col[y].size() and c <= 1;
+		if (p == (int)col[y].size()){
+			return count_query_col(y, x, n, BLACK) == 0;
 		}
 
-		// Estado já calculado.
-		if (dp[x][p][c] != -1){
-			return dp[x][p][c];
-		}
+		// Quantidade mínima de casas para conseguir preencher tudo.
+		k = query_col(y, p, col[y].size() - 1) + col[y].size() - p - 1;
 
 		// Corte.
-		if ((c > 1 and mat[x][y] == WHITE) or (c <= 1 and mat[x][y] == BLACK)){
-			return dp[x][p][c] = 0;
+		if (n - x < k or mat[x][y] == BLACK){
+			return 0;
 		}
 
-		// Preto ou branco.
-		if (p < (int)col[y].size() and c <= 1){
-			return dp[x][p][c] = solve_col_aux(y, x + 1, p + 1, col[y][p] + 1) + solve_col_aux(y, x + 1, p, 0);
+		if (dp[x][p] != -1){
+			return dp[x][p];
 		}
 
-		// Passando pra frente
-		return dp[x][p][c] = solve_col_aux(y, x + 1, p, max(0, c - 1));
+		// Se não tiver branco nas próximas casas posso escolher entre preencher a restrição ou não.
+		if (count_query_col(y, x + 1, x + col[y][p], WHITE) == 0){
+			return dp[x][p] = solve_col_aux(y, x + col[y][p] + 1, p + 1) + solve_col_aux(y, x + 1, p);
+		}
+
+		// Não preenche a restrição.
+		return dp[x][p] = solve_col_aux(y, x + 1, p);
+	}
+
+	void special_col(int y){
+		int x;
+
+		if (count_query_col(y, 1, n, BLACK) == 0){
+			col_combinations[y] = 1;
+
+			for (x = 1; x <= n; x++){
+				col_black[x][y] = 0;
+				col_white[x][y] = 1;
+			}
+		}
+		else{
+			col_combinations[y] = 0;
+
+			for (x = 1; x <= n; x++){
+				col_black[x][y] = 0;
+				col_white[x][y] = 0;
+			}
+		}
 	}
 
 	void full_solve_col(int y){
-		int k, x;
+		int x;
 
-		// Inicializando a DP.
-		k = *max_element(col[y].begin(), col[y].end());
+		if (col[y].empty()){
+			special_col(y);
+			return;
+		}
 
 		// Calculando o número de combinações da linha.
-		init_dp(n + 1, (int)col[y].size() + 1, k + 2);
-		col_combinations[y] = solve_col_aux(y, 1, 0, 0) + solve_col_aux(y, 1, 1, col[y][0] + 1);	
+		init_dp(n + 1, (int)col[y].size() + 1);
+		col_combinations[y] = solve_col_aux(y, 1, 0) + (count_query_col(y, 1, col[y][0], WHITE) == 0 ? solve_col_aux(y, col[y][0] + 1, 1) : 0);
 
+		// Se a coluna não possuir combinações
 		if (col_combinations[y] == 0){
 			return;
 		}
@@ -358,29 +449,72 @@ public:
 			}
 			else{
 				// Se ainda não estiver pintado devo calcular as possibilidades.
-				init_dp(n + 1, (int)col[y].size() + 1, k + 2);
 				mat[x][y] = BLACK;
-				col_black[x][y] = solve_col_aux(y, 1, 0, 0) + solve_col_aux(y, 1, 1, col[y][0] + 1);
-				
-				init_dp(n + 1, (int)col[y].size() + 1, k + 2);
-				mat[x][y] = WHITE;
-				col_white[x][y] = solve_col_aux(y, 1, 0, 0) + solve_col_aux(y, 1, 1, col[y][0] + 1);
+				update_col(y);
+
+				init_dp(n + 1, (int)col[y].size() + 1);
+				col_black[x][y] = solve_col_aux(y, 1, 0) + (count_query_col(y, 1, col[y][0], WHITE) == 0 ? solve_col_aux(y, col[y][0] + 1, 1) : 0);
+				col_white[x][y] = col_combinations[y] - col_black[x][y];
 
 				mat[x][y] = NONE;
+				update_col(y);
 			}
 		}
 	}
 
 	/* Função que calcula as possibilidades da linha x. */
 	void simple_solve_col(int y){
-		int k;
-
-		// Inicializando a DP.
-		k = *max_element(col[y].begin(), col[y].end());
-
 		// Calculando o número de combinações da linha.
-		init_dp(n + 1, (int)col[y].size() + 1, k + 2);
-		col_combinations[y] = solve_col_aux(y, 1, 0, 0) + solve_col_aux(y, 1, 1, col[y][0] + 1);	
+		init_dp(n + 1, (int)col[y].size() + 1);
+
+		if (!col[y].empty() and count_query_col(y, 1, col[y][0], WHITE) == 0){
+			col_combinations[y] = solve_col_aux(y, 1, 0) + solve_col_aux(y, col[y][0] + 1, 1);	
+		}
+		else{
+			col_combinations[y] = solve_col_aux(y, 1, 0);	
+		}
+	}
+
+	/* Função que retorna o número de casas iguais a k na linha x para y = [yi..yf]. */
+	int count_query_row(int x, int yi, int yf, int k){
+		return mat_row_sum[k][x][yf] - mat_row_sum[k][x][yi - 1];
+	}
+
+	/* Função que retorna o número de casas iguais a k na coluna y para x = [xi..xf]. */
+	int count_query_col(int y, int xi, int xf, int k){
+		return mat_col_sum[k][xf][y] - mat_col_sum[k][xi - 1][y];
+	}
+
+	/* O(1) Função que retorna a soma das restrições da linha x de l a r. */
+	int query_row(int x, int l, int r){
+		return row_sum[x][r] - row_sum[x][l] + row[x][l];
+	}
+
+	/* O(1) Função que retorna a soma das restrições da linha x de l a r. */
+	int query_col(int y, int l, int r){
+		return col_sum[y][r] - col_sum[y][l] + col[y][l];
+	}
+
+	/* O(M) Função que atualiza a soma acumulada da linha x. */
+	void update_row(int x){
+		int y, k;
+
+		for (k = 0; k < 3; k++){
+			for (y = 1; y <= m; y++){
+				mat_row_sum[k][x][y] = mat_row_sum[k][x][y - 1] + (mat[x][y] == k);
+			}
+		}
+	}
+
+	/* O(N) Função que atualiza a soma acumulada da coluna y. */
+	void update_col(int y){
+		int x, k;
+
+		for (k = 0; k < 3; k++){
+			for (x = 1; x <= n; x++){
+				mat_col_sum[k][x][y] = mat_col_sum[k][x - 1][y] + (mat[x][y] == k);
+			}
+		}
 	}
 
 	/* Função que calcula todas as possibilidades do tabuleiro inteiro. */
@@ -389,11 +523,13 @@ public:
 
 		// Calculando as possibilidades de todas as linhas.
 		for (x = 1; x <= n; x++){
+			update_row(x);
 			full_solve_row(x);
 		}
 
 		// Calculando as possibilidades de todas as colunas.
 		for (y = 1; y <= m; y++){
+			update_col(y);
 			full_solve_col(y);
 		}
 	}
@@ -415,12 +551,16 @@ public:
 
 	/* Função que atualiza as combinações da linha x e da coluna y. */
 	void simple_update(int x, int y){
+		update_row(x);
+		update_col(y);
 		simple_solve_row(x);
 		simple_solve_col(y);
 	}
 
 	/* Função que atualiza as combinações da linha x e da coluna y e de seus pixels. */
 	void full_update(int x, int y){
+		update_row(x);
+		update_col(y);
 		full_solve_row(x);
 		full_solve_col(y);
 	}

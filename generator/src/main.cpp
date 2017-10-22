@@ -12,8 +12,8 @@ int main(){
 
 	// Lendo a matriz.
 	assert(scanf("%*[^\r\n]") == 0);
-	assert(scanf("%d%d", &m, &n) == 2);
-	assert(scanf("%*[^\r\n]") == 0);
+	assert(scanf("%d%d%*[\r\n]", &m, &n) == 2);
+	assert(scanf("%*[^\r\n]%*[\r\n]") == 0);
 
 	mat.resize(n + 1);
 	row.resize(n + 1);
@@ -24,6 +24,7 @@ int main(){
 
 		for (j = 1; j <= m; j++){
 			assert(scanf("%1d", &mat[i][j]) == 1);
+			mat[i][j] = mat[i][j] ? 1 : 0;
 		}
 	}
 
