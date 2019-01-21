@@ -10,5 +10,5 @@ smart:
 	@./main smart
 smart_all:
 	@./main smart all
-fullrun:
+debug:
 	valgrind -v --leak-check=full --track-origins=yes --show-leak-kinds=all ./main smart
